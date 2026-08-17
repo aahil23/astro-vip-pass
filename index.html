@@ -71,10 +71,21 @@
     font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
   .count.full{background:var(--primary);border-color:var(--primary);color:#fff}
 
+  .listwrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
   .listbox{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
     display:flex;flex-direction:column;gap:8px;padding:2px 2px 4px;margin:0 -2px;
     scrollbar-width:none}
   .listbox::-webkit-scrollbar{display:none}
+  .listwrap::after{content:"";position:absolute;left:0;right:6px;bottom:0;height:34px;pointer-events:none;
+    background:linear-gradient(to bottom, transparent, hsl(18 89% 95% / .95));
+    opacity:1;transition:opacity .2s}
+  .listwrap.at-bottom::after{opacity:0}
+  .scrollcue{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);width:26px;height:26px;
+    border-radius:999px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);
+    display:grid;place-items:center;color:var(--primary);pointer-events:none;
+    opacity:1;transition:opacity .2s;animation:bob 1.6s ease-in-out infinite}
+  .listwrap.at-bottom .scrollcue{opacity:0}
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,3px)}}
   .benefit{width:100%;text-align:left;display:flex;align-items:flex-start;gap:11px;
     background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
     padding:11px 12px;flex:none;position:relative;transition:border-color .16s,box-shadow .16s,background .16s}
@@ -182,7 +193,12 @@
         <span class="count" id="count">0 of 6 selected</span>
       </div>
 
-      <div class="listbox" id="listbox"></div>
+      <div class="listwrap" id="listwrap">
+        <div class="listbox" id="listbox"></div>
+        <div class="scrollcue" id="scrollcue">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
 
       <div class="tiers">Extra benefits: <b>4th +₹30</b> · <b>5th +₹50</b> · <b>6th +₹80</b></div>
       <div class="note" id="note">Pick at least 3 to continue.</div>
@@ -382,6 +398,17 @@ listbox.innerHTML = BENEFITS.map(b => `
     <span class="bcheck">${S('<path d="M20 6 9 17l-5-5"/>',13).replace('stroke-width="2"','stroke-width="3.2"')}</span>
   </button>`).join('');
 
+const listwrap = document.getElementById('listwrap');
+function updateScrollCue(){
+  const atBottom = listbox.scrollHeight - listbox.scrollTop - listbox.clientHeight < 8;
+  listwrap.classList.toggle('at-bottom', atBottom);
+}
+listbox.addEventListener('scroll', updateScrollCue);
+window.addEventListener('resize', updateScrollCue);
+// re-check after layout settles (fonts/images loading can change scrollHeight)
+setTimeout(updateScrollCue, 50);
+setTimeout(updateScrollCue, 400);
+
 function renderBenefits(){
   listbox.querySelectorAll('.benefit').forEach(el => {
     el.setAttribute('aria-pressed', String(selected.includes(el.dataset.id)));
@@ -551,6 +578,7 @@ async function boot(){
   }
 
   track('session_start', { benefit_count: selected.length });
+  setTimeout(updateScrollCue, 50);
 }
 
 /* Best-effort drop-off signal: fires once when the tab is hidden/closed,
