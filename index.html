@@ -190,7 +190,7 @@
 
       <div class="titlerow">
         <span></span>
-        <span class="count" id="count">0 of 6 selected</span>
+        <span class="count" id="count">0 of 3 selected</span>
       </div>
 
       <div class="listwrap" id="listwrap">
@@ -200,8 +200,7 @@
         </div>
       </div>
 
-      <div class="tiers">Extra benefits: <b>4th +₹30</b> · <b>5th +₹50</b> · <b>6th +₹80</b></div>
-      <div class="note" id="note">Pick at least 3 to continue.</div>
+      <div class="note" id="note">Pick 3 to continue.</div>
     </div>
     <div class="foot">
       <button class="cta" id="toDuration" disabled><span id="toDurationLabel">Pick 3 to continue</span></button>
@@ -250,7 +249,7 @@
       <div class="seal">
         <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
       </div>
-      <h1>You're on the VIP list!</h1>
+      <h1>You're on the waitlist!</h1>
       <p class="lede">We'll let you know as soon as your AstroLokal VIP Pass is available.</p>
     </div>
   </section>
@@ -261,7 +260,7 @@
       <div class="seal">
         <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
       </div>
-      <h1>You're already on the VIP list!</h1>
+      <h1>You're already on the waitlist!</h1>
       <p class="lede">We'll let you know as soon as your AstroLokal VIP Pass is available.</p>
     </div>
   </section>
@@ -365,8 +364,8 @@ const BENEFITS = [
   {id:'offers',  name:'Exclusive Offers',           icon:'offers',  desc:'Enjoy special offers made exclusively for VIP members'},
   {id:'rate',    name:'Special Consult Rate',       icon:'rate',    desc:'Consult your favourite expert at an exclusive lower rate'}
 ];
-const MAX_SELECT = 6, MIN_SELECT = 3;
-const TIER_ADDON = {0:0,1:0,2:0,3:0,4:30,5:50,6:80};
+const MAX_SELECT = 3, MIN_SELECT = 3;
+const addon = () => 0;
 const DUR = {
   weekly:  {name:'Weekly',  base:99,  label:'Weekly pass'},
   monthly: {name:'Monthly', base:199, label:'Monthly pass'}
@@ -386,7 +385,6 @@ let selected = [];   // ordered array of benefit ids, max 6
 let dur = null;
 let hintTimer = null;
 
-const addon = () => TIER_ADDON[selected.length] || 0;
 const total = () => dur ? DUR[dur].base + addon() : 0;
 
 /* build benefit rows */
@@ -421,13 +419,9 @@ function renderBenefits(){
     : 'Continue';
 
   if (!noteEl.classList.contains('warn')){
-    if (selected.length < MIN_SELECT){
-      noteEl.textContent = 'Pick at least 3 to continue.';
-    } else if (selected.length === MIN_SELECT){
-      noteEl.textContent = "Nice — you're set. Add more if you'd like.";
-    } else {
-      noteEl.textContent = `${selected.length} benefits selected. +₹${addon()} added.${selected.length===MAX_SELECT ? " That's the max." : ''}`;
-    }
+    noteEl.textContent = selected.length < MIN_SELECT
+      ? 'Pick 3 to continue.'
+      : "You're all set.";
   }
 }
 
@@ -456,7 +450,7 @@ listbox.addEventListener('click', e => {
     });
   }
   else if (selected.length >= MAX_SELECT){
-    warnBenefits('6 is the most you can pick.', el);
+    warnBenefits('You can only pick 3 benefits.', el);
     track('benefit_max_blocked', { benefit_count: selected.length });
   }
   else {
